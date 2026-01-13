@@ -1,5 +1,5 @@
 Modül 1: Mevcut Paketleri Keşfetme ve Kurulum
-Görev: ArtifactHub üzerinden resmi bir nginx veya redis chart'ı bulup Minikube/k3s üzerine kurun
+Görev: ArtifactHub üzerinden resmi bir nginx veya redis chart'ı bulup Minikube/k3s üzerine kurun.
 Ödev Detayı:
 1. Bitnami reposunu Helm'e ekleyin.
 2. helm install ile bir uygulama ayağa kaldırın.
