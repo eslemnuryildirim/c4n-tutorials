@@ -1,0 +1,21 @@
+replicaCount: 2
+
+image:
+  repository: my-hello-app
+  pullPolicy: IfNotPresent
+  tag: "v1.0.0"
+
+service:
+  type: ClusterIP
+  port: 5000
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+app:
+  message: "Hello from My Helm Chart!"

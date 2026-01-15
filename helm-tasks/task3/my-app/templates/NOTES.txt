@@ -1,0 +1,8 @@
+🎉 {{ .Chart.Name }} başarıyla kuruldu!
+
+Uygulamaya erişmek için:
+
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "my-app.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+  kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 8080:5000
+
+Tarayıcınızda http://127.0.0.1:8080 adresini ziyaret edin
