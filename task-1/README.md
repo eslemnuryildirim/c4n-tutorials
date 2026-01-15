@@ -35,9 +35,23 @@ helm list
 
 4. **Önemli Uyarılar**: Güvenlik veya yapılandırma ile ilgili önemli notları içerir
 
-### Örnek Notes Çıktısı (Nginx için):
+### Gerçek helm status Çıktısı:
 ```
+NAME: my-nginx
+LAST DEPLOYED: Wed Jan 14 06:24:02 2026
+NAMESPACE: default
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+
 NOTES:
+CHART NAME: nginx
+CHART VERSION: 22.4.3
+APP VERSION: 1.29.4
+
+⚠ WARNING: Since August 28th, 2025, only a limited subset of images/charts are available for free.
+Subscribe to Bitnami Secure Images to receive continued support and security updates.
+
 ** Please be patient while the chart is being deployed **
 
 NGINX can be accessed through the following DNS name from within your cluster:
@@ -45,8 +59,19 @@ NGINX can be accessed through the following DNS name from within your cluster:
 
 To access NGINX from outside the cluster, follow the steps below:
 1. Get the NGINX URL by running these commands:
-   kubectl port-forward --namespace default svc/my-nginx 8080:80
-   echo "NGINX URL: http://127.0.0.1:8080/"
+
+NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+      Watch the status with: 'kubectl get svc --namespace default -w my-nginx'
+
+    export SERVICE_PORT=$(kubectl get --namespace default -o jsonpath="{.spec.ports[0].port}" services my-nginx)
+    export SERVICE_IP=$(kubectl get svc --namespace default my-nginx -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+    echo "http://${SERVICE_IP}:${SERVICE_PORT}"
+
+WARNING: Rolling tag detected (bitnami/nginx:latest), please note that it is strongly recommended 
+to avoid using rolling tags in a production environment.
+
+WARNING: There are "resources" sections in the chart not set. Using "resourcesPreset" is not 
+recommended for production.
 ```
 
 ## Kullanılan Komutlar Özeti
