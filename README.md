@@ -1,34 +1,38 @@
 # Helm Eğitim Görevleri
 
+Bu proje Helm öğrenimi ve pratikleri amacıyla hazırlanmıştır. Vagrant üzerinde sanallaştırılan, Ansible ile configure edilen ve Minikube üzerinde çalışan bir yapıyı kapsar.
+
+## Ön Gereksinimler
+
+- [Vagrant](https://www.vagrantup.com/)
+- [VirtualBox](https://www.virtualbox.org/) 
+- [Minikube](https://minikube.sigs.k8s.io/docs/start/)
+- [Helm](https://helm.sh/docs/intro/install/)
+
 ---
 
 ## Task 1: Mevcut Paketleri Keşfetme ve Kurulum
 
 ### Görev
-ArtifactHub üzerinden resmi bir nginx veya redis chart'ı bulup Minikube/k3s üzerine kurun.
-
-### Ödev Detayı
-1. Bitnami reposunu Helm'e ekleyin
-2. helm install ile bir uygulama ayağa kaldırın
-3. helm list ile durumu kontrol edin
+ArtifactHub üzerinden resmi bir nginx chart'ı bulup Minikube üzerine kurun.
 
 ### Yapılan İşlemler
 
-#### 1. Bitnami Reposunu Helm'e Ekleme
+#### 1. Bitnami Repository Ekleme
 ```bash
 helm repo add bitnami https://charts.bitnami.com/bitnami
 helm repo update
 ```
 
-#### 2. Nginx Uygulamasını Kurma
+#### 2. Nginx Chart Kurulumu
 ```bash
-helm install my-nginx bitnami/nginx
+helm install my-nginx bitnami/nginx --namespace default
 ```
 
-#### 3. Durumu Kontrol Etme
+#### 3. Kurulum Doğrulama
 ```bash
 helm list
-helm status my-nginx
+kubectl get pods
 ```
 
 ### helm status Çıktısı
@@ -48,36 +52,21 @@ APP VERSION: 1.29.4
 
 NGINX can be accessed through the following DNS name from within your cluster:
     my-nginx.default.svc.cluster.local (port 80)
-
-To access NGINX from outside the cluster:
-    export SERVICE_PORT=$(kubectl get --namespace default -o jsonpath="{.spec.ports[0].port}" services my-nginx)
-    export SERVICE_IP=$(kubectl get svc --namespace default my-nginx -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-    echo "http://${SERVICE_IP}:${SERVICE_PORT}"
 ```
 
 ### Soru: helm status komutundaki "Notes" bölümü ne işe yarar?
 
-Notes bölümü şu amaçlara hizmet eder:
+Notes bölümü `chartName/templates/NOTES.txt` dosyasındaki bilgileri gösterir ve şu amaçlara hizmet eder:
 
-1. **Kurulum Sonrası Talimatlar**: Uygulamaya nasıl erişileceğini gösterir (port-forward, LoadBalancer IP alma vb.)
-2. **Bağlantı Bilgileri**: Hangi URL veya port üzerinden erişileceğini belirtir
-3. **Varsayılan Credentials**: Şifre gerektiren uygulamalarda kullanıcı bilgilerini veya nasıl alınacağını gösterir
-4. **Önemli Uyarılar**: Güvenlik veya yapılandırma ile ilgili notları içerir
+1. **Kurulum Sonrası Talimatlar**: Uygulamaya nasıl erişileceğini gösterir
+2. **Bağlantı Bilgileri**: Service URL'leri ve port bilgileri
+3. **Önemli Uyarılar**: Güvenlik ve yapılandırma notları
+4. **Chart Metadata**: Chart adı, versiyonu ve uygulama versiyonu
 
 ### Port Forwarding ile Erişim
-Minikube'da LoadBalancer olmadığı için port-forward kullanıldı:
-
 ```bash
 kubectl port-forward svc/my-nginx 8080:80
 ```
-
-Çıktı:
-```
-Forwarding from 127.0.0.1:8080 -> 8080
-Forwarding from [::1]:8080 -> 8080
-```
-
-Tarayıcıdan `http://localhost:8080` adresine gidildiğinde nginx karşılama sayfası görüntülendi.
 
 ![Nginx Welcome Page](screenshots/nginx-welcome.png)
 
@@ -86,22 +75,25 @@ Tarayıcıdan `http://localhost:8080` adresine gidildiğinde nginx karşılama s
 ## Task 2: Yapılandırma ve Values.yaml
 
 ### Görev
-Kurduğunuz uygulamanın özelliklerini (örneğin replica sayısını veya servis tipini) dışarıdan müdahale ederek değiştirin.
+Kurulu nginx uygulamasının özelliklerini values.yaml dosyası üzerinden özelleştirin.
 
-### Ödev Detayı
-1. values.yaml dosyasını export edin
-2. Replica sayısını 1'den 3'e çıkarın
-3. Uygulamanın 1 cpu, 2 gb memory ile çalışmasını sağlayın
-4. helm upgrade komutuyla sistemi güncelleyin
-
-### Yapılan İşlemler
-
-#### 1. Default Values Dosyasını Export Etme
-```bash
-helm show values bitnami/nginx > default-values.yaml
+### Başlangıç Durumu
+Varsayılan kaynak limitleri:
+```yaml
+resources:
+  limits:
+    cpu: 150m
+    ephemeral-storage: 2Gi
+    memory: 192Mi
+  requests:
+    cpu: 100m
+    ephemeral-storage: 50Mi
+    memory: 128Mi
 ```
 
-#### 2. Özelleştirilmiş Values Dosyası Oluşturma
+### Yapılan Değişiklikler
+
+#### 1. values.yaml Güncelleme
 ```yaml
 replicaCount: 3
 
@@ -118,78 +110,44 @@ resources:
 
 ![Values.yaml Detay](screenshots/values.yaml1.png)
 
-#### 3. Helm Upgrade ile Güncelleme
+#### 2. Helm Upgrade
 ```bash
-helm upgrade my-nginx bitnami/nginx -f values.yaml
-```
-
-### Upgrade Çıktısı
-```
-Release "my-nginx" has been upgraded. Happy Helming!
-NAME: my-nginx
-LAST DEPLOYED: Thu Jan 15 21:47:24 2026
-NAMESPACE: default
-STATUS: deployed
-REVISION: 6
+helm upgrade my-nginx ./nginx
 ```
 
 ### Sonuç ve Gözlemler
 
-Upgrade sonrası pod durumları:
-```
-NAME                        READY   STATUS    RESTARTS   AGE
-my-nginx-5664ffbb99-xpvth   1/1     Running   0          39h
-my-nginx-5664ffbb99-xtmch   1/1     Running   0          19s
-my-nginx-7c5d7997-4xcjx     1/1     Running   0          6h43m
-my-nginx-7c5d7997-8dz82     0/1     Pending   0          19s
-my-nginx-fc5ccb965-9rlrk    0/1     Pending   0          69s
-```
+Upgrade sonrası bazı pod'lar "Pending" durumunda kaldı. Bu durum Minikube'un tek node üzerinde çalışması ve belirlenen kaynak gereksinimlerini karşılayacak yeterli kapasitesinin olmamasından kaynaklanıyor.
 
-Bazı pod'lar "Pending" durumunda kaldı. Sebebi Minikube'un tek node üzerinde çalışması ve belirlenen kaynak gereksinimlerini (1 CPU, 2Gi memory) karşılayacak yeterli kapasitesinin olmaması.
-
-`kubectl describe pod <pod-name>` komutuyla kontrol edildiğinde:
 ```
 0/1 nodes are available: insufficient cpu.
 ```
 
-Bu durum bir hata değil, Kubernetes'in kaynak yönetiminin doğru çalıştığının göstergesi. Scheduler, node'da yeterli kaynak olmadığı için pod'u schedule edemiyor ve Pending'de bekletiyor.
-
-### Öğrenilen Kavramlar
-
-- **values.yaml**: Helm chart'larını özelleştirmek için kullanılan yapılandırma dosyası
-- **helm upgrade**: Mevcut bir release'i yeni değerlerle güncellemek için kullanılır
-- **Resource Limits**: Pod'ların kullanabileceği maksimum kaynak miktarını belirler
-- **Pending Status**: Node'da yeterli kaynak olmadığında pod'ların bekleme durumu
+Bu durum bir hata değil, Kubernetes'in kaynak yönetiminin doğru çalıştığının göstergesi.
 
 ---
 
 ## Task 3: Kendi Chart'ını Oluşturma (Deep Dive)
 
 ### Görev
-Çok basit bir "Hello World" (Flask veya Node.js olabilir) uygulamasını Helm Chart haline getirin.
-
-### Ödev Detayı
-1. helm create my-app komutuyla iskeleti oluşturun
-2. Gereksiz dosyaları temizleyin
-3. templates/ klasörü altındaki YAML dosyalarında Go Templating kullanarak dinamik alanlar oluşturun
-4. helm lint komutuyla chart'ın standartlara uygunluğunu test edin
+Flask ile basit bir "Hello World" uygulamasını Helm Chart haline getirin.
 
 ### Yapılan İşlemler
 
-#### 1. Flask Uygulaması Oluşturma
+#### 1. Flask Uygulaması
 ```python
 from flask import Flask
 app = Flask(__name__)
 
 @app.route('/')
 def hello():
-    return "Hello from Helm Chart!"
+    return "Hello World! Kubernetes ve Helm çalışıyor"
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
 ```
 
-#### 2. Dockerfile Oluşturma
+#### 2. Dockerfile
 ```dockerfile
 FROM python:3.9-slim
 WORKDIR /app
@@ -199,177 +157,152 @@ EXPOSE 5000
 CMD ["python", "app.py"]
 ```
 
-#### 3. Helm Chart İskeleti Oluşturma
+#### 3. Image Build (Minikube Docker)
 ```bash
-helm create my-app
+eval $(minikube docker-env)
+docker build -t my-hello-app:v1.0.0 .
 ```
 
-#### 4. values.yaml Yapılandırması
-```yaml
-replicaCount: 2
-
-image:
-  repository: my-hello-app
-  pullPolicy: IfNotPresent
-  tag: "v1.0.0"
-
-service:
-  type: ClusterIP
-  port: 5000
-
-resources:
-  limits:
-    cpu: 200m
-    memory: 256Mi
-  requests:
-    cpu: 100m
-    memory: 128Mi
-
-app:
-  message: "Hello from My Helm Chart!"
-```
-
-#### 5. Go Templating Kullanımı (deployment.yaml)
-```yaml
-containers:
-- name: {{ .Chart.Name }}
-  image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-  imagePullPolicy: {{ .Values.image.pullPolicy }}
-  ports:
-  - name: http
-    containerPort: 5000
-  env:
-  - name: APP_MESSAGE
-    value: {{ .Values.app.message | quote }}
-  resources:
-    {{- toYaml .Values.resources | nindent 10 }}
-```
-
-#### 6. Helm Lint ile Test
+#### 4. Helm Chart Oluşturma
 ```bash
-helm lint
+helm create hello-app
 ```
 
-Çıktı:
-```
-==> Linting .
-[INFO] Chart.yaml: icon is recommended
-1 chart(s) linted, 0 chart(s) failed
-```
-
-#### 7. Chart'ı Deploy Etme ve Test
+#### 5. Chart Deployment
 ```bash
-helm install my-release ./my-app
-curl $(minikube service my-release-my-app --url)
-```
-```
-Hello from Helm Chart!
+helm install hello-world-app ./hello-app --set image.pullPolicy=Never
 ```
 
 ![Task 3 - Hello World Çıktısı](screenshots/task3-helloworld.png)
 
 ### Karşılaşılan Sorun: ImagePullBackOff
 
-İlk deploy denemesinde `ImagePullBackOff` hatası alındı:
+İlk denemede `ImagePullBackOff` hatası alındı çünkü image VM'nin Docker daemon'ında build edilmişti, Minikube'nin Docker daemon'ında değil.
 
-```
-NAME                                 READY   STATUS             RESTARTS   AGE
-my-release-my-app-d94869d65-rs9bl   0/1     ImagePullBackOff   0          26s
-```
+![ImagePullBackOff Hatası](screenshots/task-3basimagelen.png)
 
-![ImagePullBackOff Hatası](screenshots/task3-imagepullbackoff.png)
-
-#### Sorunun Sebebi
-VM'de `docker build` komutu çalıştırıldığında image VM'nin Docker daemon'ında oluşuyor. Ancak Minikube kendi Docker daemon'ını kullanıyor ve bu image'ı göremiyordu.
-
-```
-┌─────────────────────────────────┐
-│         VM (vagrant)            │
-│  ┌──────────────────────────┐  │
-│  │  Docker Daemon (VM)      │  │  ← Build edilen yer
-│  │  • my-hello-app:v1.0.0   │  │
-│  └──────────────────────────┘  │
-│                                 │
-│  ┌──────────────────────────┐  │
-│  │  Minikube                │  │
-│  │  ┌────────────────────┐  │  │
-│  │  │ Docker Daemon      │  │  │  ← Kubernetes'in baktığı yer
-│  │  │ (Minikube içinde)  │  │  │
-│  │  │ • IMAGE YOK! ❌    │  │  │
-│  │  └────────────────────┘  │  │
-│  └──────────────────────────┘  │
-└─────────────────────────────────┘
-```
-
-#### Çözüm
-Minikube'nin Docker daemon'ına geçip image'ı orada build etmek:
-
-```bash
-# Minikube'nin Docker'ına geç
-eval $(minikube docker-env)
-
-# Image'ı Minikube içinde build et
-cd ~/c4n-tutorials/helm-tasks/task3
-docker build -t my-hello-app:v1.0.0 .
-
-# Image'ın Minikube'de olduğunu kontrol et
-docker images | grep my-hello-app
-```
-
-values.yaml düzeltmesi:
-```yaml
-image:
-  repository: my-hello-app
-  pullPolicy: Never    # IfNotPresent yerine Never
-  tag: "v1.0.0"
-```
-
-Helm'i tekrar kur:
-```bash
-helm uninstall my-release
-helm install my-release . --set image.pullPolicy=Never
-```
-
-Bu değişikliklerden sonra pod'lar başarıyla Running durumuna geçti.
-
-### Öğrenilen Kavramlar
-
-- **helm create**: Yeni bir Helm chart iskeleti oluşturur
-- **Go Templating**: `{{ .Values.xxx }}` syntax'ı ile dinamik değerler tanımlanır
-- **helm lint**: Chart'ın Helm standartlarına uygunluğunu kontrol eder
-- **Chart.yaml**: Chart metadata'sını içerir (isim, versiyon, açıklama)
-- **values.yaml**: Varsayılan yapılandırma değerlerini içerir
-- **eval $(minikube docker-env)**: Terminal'i Minikube'nin Docker daemon'ına bağlar
-- **imagePullPolicy: Never**: Kubernetes'in image'ı registry'den çekmemesini sağlar
+**Çözüm:** `eval $(minikube docker-env)` komutu ile Minikube'nin Docker daemon'ına geçip image'ı orada build etmek.
 
 ---
 
 ## Task 4: Release Yönetimi ve Geri Dönüş (Rollback)
 
 ### Görev
-Uygulamanın imaj versiyonunu bilerek "yanlış/bozuk" bir versiyonla güncelleyin ve sistemin çöküşünü izleyip geri dönün.
-
-### Ödev Detayı
-1. Hatalı bir imaj etiketiyle upgrade yapın
-2. kubectl get pods ile hatayı (ImagePullBackOff) görün
-3. helm history ile geçmişi listeleyin
-4. helm rollback komutuyla çalışan son versiyona saniyeler içinde geri dönün
+Uygulamanın imaj versiyonunu bilerek hatalı bir versiyonla güncelleyip rollback yapın.
 
 ### Yapılan İşlemler
 
-#### 1. Hatalı Image Tag ile Upgrade
+#### 1. Hatalı Upgrade
+values.yaml'da `nginx` yerine `nginxx` yazarak kasıtlı hata oluşturuldu.
+
 ![Task 4 - Hatalı Upgrade](screenshots/task4.png)
 
-#### 2. Pod Durumunu Kontrol Etme  
+#### 2. Hata Gözlemi
+Pod'lar `ImagePullBackOff` durumuna geçti.
+
 ![Task 4 - Pod Durumu](screenshots/task4.1.png)
 
-#### 3. Helm History ve Rollback
+#### 3. Rollback İşlemi
+```bash
+helm history my-nginx
+helm rollback my-nginx 1
+```
+
 ![Task 4 - History ve Rollback](screenshots/task4.2.png)
 
-### Öğrenilen Kavramlar
+Rollback sonrası pod'lar tekrar çalışır duruma geldi.
 
-- **helm upgrade**: Mevcut release'i yeni değerlerle günceller
-- **ImagePullBackOff**: Kubernetes'in belirtilen image'ı bulamadığı durum
-- **helm history**: Release'in tüm versiyonlarını listeler
-- **helm rollback**: Önceki bir versiyona geri döner
-- **Revision**: Her helm upgrade/install işlemi yeni bir revision oluşturur
+---
+
+## Task 5: Final Projesi (Full Stack)
+
+### Görev
+WordPress sitesini MariaDB ile birlikte Helm kullanarak kurun ve Secret objesi ile güvenli deployment yapın.
+
+### Yapılan İşlemler
+
+#### 1. WordPress Chart İndirme
+```bash
+helm pull bitnami/wordpress --untar
+```
+
+#### 2. Secret Template Oluşturma
+`templates/externaldb-secret.yaml`:
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "wordpress.fullname" . }}-db-secret
+type: Opaque
+data:
+  mariadb-password: {{ .Values.mariadb.auth.password | b64enc | quote }}
+  wordpress-password: {{ .Values.wordpress.auth.password | b64enc | quote }}
+```
+
+#### 3. values.yaml Güncelleme
+MariaDB ayarları external secret kullanacak şekilde güncellendi.
+
+#### 4. WordPress Deployment
+```bash
+helm install my-blog ./wordpress
+```
+
+![Task 5 - WordPress Chart](screenshots/task5.1.png)
+
+#### 5. Secret Doğrulama
+Secret objesi base64 ile şifrelenmiş şifreleri içeriyor.
+
+![Task 5 - Secret Deployment](screenshots/task5.2.png)
+
+#### 6. HTTPS Yapılandırması
+Self-signed sertifika oluşturuldu:
+```bash
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+-keyout tls.key \
+-out tls.crt \
+-subj "/CN=my-blog.local/O=MertLab"
+```
+
+values.yaml'da TLS ayarları güncellendi ve WordPress HTTPS ile erişilebilir hale getirildi.
+
+#### 7. Port Forwarding ile Erişim
+```bash
+kubectl port-forward svc/my-blog-wordpress 8080:80 --address 0.0.0.0
+```
+
+### Karşılaşılan Sorun: VM Kapanması
+Çalışma sırasında VM beklenmedik şekilde kapandı. Emergency stop yapılarak sistem yeniden başlatıldı.
+
+![VM Kapanma Sorunu](screenshots/Ekran Resmi 2026-01-20 13.24.37.png)
+
+**Çözüm:**
+```bash
+vagrant up
+minikube start
+helm list  # Release'leri kontrol et
+```
+
+---
+
+## Öğrenilen Kavramlar
+
+### Helm Temel Kavramları
+- **Chart**: Kubernetes uygulamalarını tanımlayan dosya koleksiyonu
+- **Release**: Bir chart'ın Kubernetes cluster'ında çalışan instance'ı
+- **Repository**: Chart'ların depolandığı yer
+- **values.yaml**: Chart'ı özelleştirmek için kullanılan yapılandırma dosyası
+
+### Kubernetes Entegrasyonu
+- **Secret**: Hassas verilerin güvenli saklanması
+- **PersistentVolumeClaim**: Kalıcı veri depolama
+- **Service Discovery**: Container'ların birbirini bulması
+- **Resource Management**: CPU ve memory limitleri
+
+### Operasyonel Kavramlar
+- **helm upgrade**: Mevcut release'i güncelleme
+- **helm rollback**: Önceki versiyona geri dönme
+- **helm history**: Release geçmişini görüntüleme
+- **ImagePullPolicy**: Container image çekme politikaları
+- **Emergency Recovery**: Sistem kurtarma prosedürleri
+
+Bu proje Helm'in temel özelliklerinden ileri seviye deployment stratejilerine kadar geniş bir yelpazede pratik deneyim sağlamıştır.
