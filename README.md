@@ -1,15 +1,3 @@
-# Helm Eğitim Görevleri
-
-Bu proje Helm öğrenimi ve pratikleri amacıyla hazırlanmıştır. Vagrant üzerinde sanallaştırılan, Ansible ile configure edilen ve Minikube üzerinde çalışan bir yapıyı kapsar.
-
-## Ön Gereksinimler
-
-- [Vagrant](https://www.vagrantup.com/)
-- [VirtualBox](https://www.virtualbox.org/) 
-- [Minikube](https://minikube.sigs.k8s.io/docs/start/)
-- [Helm](https://helm.sh/docs/intro/install/)
-
----
 
 ## Task 1: Mevcut Paketleri Keşfetme ve Kurulum
 
@@ -304,5 +292,3 @@ helm list  # Release'leri kontrol et
 - **helm history**: Release geçmişini görüntüleme
 - **ImagePullPolicy**: Container image çekme politikaları
 - **Emergency Recovery**: Sistem kurtarma prosedürleri
-
-Bu proje Helm'in temel özelliklerinden ileri seviye deployment stratejilerine kadar geniş bir yelpazede pratik deneyim sağlamıştır.
