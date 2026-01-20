@@ -7,8 +7,8 @@ wordpress:
   image: wordpress:latest
 
 secrets:
-  mysqlRootPassword: "rootpass123"
-  mysqlPassword: "wppass123"
+  mysqlRootPassword: "******"
+  mysqlPassword: "********"
 ingress:
   enabled: true
   hostname: myblog.local
