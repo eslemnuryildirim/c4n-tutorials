@@ -1,0 +1,20 @@
+# MariaDB Ayarları
+mariadb:
+  image: mariadb:10.11
+  rootPassword: "MyRootPassword123"
+  password: "MyWordPressPassword456"
+  user: "wpuser"
+  database: "wordpress_db"
+  persistence:
+    size: 5Gi
+
+# WordPress Ayarları
+wordpress:
+  image: wordpress:6.4-apache
+  replicaCount: 1
+  service:
+    type: NodePort
+    port: 80
+    nodePort: 30080
+  persistence:
+    size: 5Gi
