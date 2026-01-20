@@ -1,5 +1,0 @@
-apiVersion: v2
-name: wordpress-secure
-description: WordPress with MariaDB using Kubernetes Secrets
-version: 0.1.0
-appVersion: "1.0"

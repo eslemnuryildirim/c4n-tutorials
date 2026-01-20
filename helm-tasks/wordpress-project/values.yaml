@@ -1,0 +1,11 @@
+mysql:
+  image: mysql:8.0
+  database: wordpress
+  user: wpuser
+
+wordpress:
+  image: wordpress:latest
+
+secrets:
+  mysqlRootPassword: "rootpass123"
+  mysqlPassword: "wppass123"
