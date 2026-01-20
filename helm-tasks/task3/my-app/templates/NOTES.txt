@@ -1,4 +1,4 @@
-🎉 {{ .Chart.Name }} başarıyla kuruldu!
+ {{ .Chart.Name }} başarıyla kuruldu!
 
 Uygulamaya erişmek için:
 
