@@ -341,3 +341,35 @@ Bu değişikliklerden sonra pod'lar başarıyla Running durumuna geçti.
 - **values.yaml**: Varsayılan yapılandırma değerlerini içerir
 - **eval $(minikube docker-env)**: Terminal'i Minikube'nin Docker daemon'ına bağlar
 - **imagePullPolicy: Never**: Kubernetes'in image'ı registry'den çekmemesini sağlar
+
+---
+
+## Task 4: Release Yönetimi ve Geri Dönüş (Rollback)
+
+### Görev
+Uygulamanın imaj versiyonunu bilerek "yanlış/bozuk" bir versiyonla güncelleyin ve sistemin çöküşünü izleyip geri dönün.
+
+### Ödev Detayı
+1. Hatalı bir imaj etiketiyle upgrade yapın
+2. kubectl get pods ile hatayı (ImagePullBackOff) görün
+3. helm history ile geçmişi listeleyin
+4. helm rollback komutuyla çalışan son versiyona saniyeler içinde geri dönün
+
+### Yapılan İşlemler
+
+#### 1. Hatalı Image Tag ile Upgrade
+![Task 4 - Hatalı Upgrade](screenshots/task4.png)
+
+#### 2. Pod Durumunu Kontrol Etme  
+![Task 4 - Pod Durumu](screenshots/task4.1.png)
+
+#### 3. Helm History ve Rollback
+![Task 4 - History ve Rollback](screenshots/task4.2.png)
+
+### Öğrenilen Kavramlar
+
+- **helm upgrade**: Mevcut release'i yeni değerlerle günceller
+- **ImagePullBackOff**: Kubernetes'in belirtilen image'ı bulamadığı durum
+- **helm history**: Release'in tüm versiyonlarını listeler
+- **helm rollback**: Önceki bir versiyona geri döner
+- **Revision**: Her helm upgrade/install işlemi yeni bir revision oluşturur
