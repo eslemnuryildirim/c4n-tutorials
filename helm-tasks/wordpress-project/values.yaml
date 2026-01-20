@@ -9,3 +9,9 @@ wordpress:
 secrets:
   mysqlRootPassword: "rootpass123"
   mysqlPassword: "wppass123"
+ingress:
+  enabled: true
+  hostname: myblog.local
+  ingressClassName: nginx
+  tls: true
+  tlsSecret: wordpress-tls
