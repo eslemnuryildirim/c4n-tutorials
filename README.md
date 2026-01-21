@@ -253,10 +253,17 @@ openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
 
 values.yaml'da TLS ayarları güncellendi ve WordPress HTTPS ile erişilebilir hale getirildi.
 
+![WordPress Deployment](screenshots/wordpressayakya.png)
+
 #### 7. Port Forwarding ile Erişim
 ```bash
 kubectl port-forward svc/my-blog-wordpress 8080:80 --address 0.0.0.0
 ```
+
+#### 8. HTTPS Erişim Testi
+WordPress HTTPS üzerinden başarıyla erişilebilir hale geldi:
+
+![HTTPS WordPress](screenshots/myblog-hey.png)
 
 ### Karşılaşılan Sorun: VM Kapanması
 Çalışma sırasında VM beklenmedik şekilde kapandı. Emergency stop yapılarak sistem yeniden başlatıldı.
