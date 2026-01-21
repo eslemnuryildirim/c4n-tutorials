@@ -163,6 +163,8 @@ helm install hello-world-app ./hello-app --set image.pullPolicy=Never
 
 ![Task 3 - Hello World Çıktısı](screenshots/task3-helloworld.png)
 
+![Hello from Helm Chart](screenshots/hello-from-helmchart.png)
+
 ### Karşılaşılan Sorun: ImagePullBackOff
 
 İlk denemede `ImagePullBackOff` hatası alındı çünkü image VM'nin Docker daemon'ında build edilmişti, Minikube'nin Docker daemon'ında değil.
