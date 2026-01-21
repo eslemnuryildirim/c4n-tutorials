@@ -250,7 +250,7 @@ Self-signed sertifika oluşturuldu:
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
 -keyout tls.key \
 -out tls.crt \
--subj "/CN=my-blog.local/O=MertLab"
+-subj "/CN=my-blog.local/O=Lab"
 ```
 
 values.yaml'da TLS ayarları güncellendi ve WordPress HTTPS ile erişilebilir hale getirildi.
